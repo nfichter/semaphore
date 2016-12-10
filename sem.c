@@ -29,29 +29,29 @@ int main(int argc, char *argv[]) {
 		union semun su;
 		su.val = 1;
 		semctl(semid,0,SETVAL,su);
+
 	} else if (strcmp(argv[1],"-v") == 0) {
 		int shmid = shmget(ftok("story.txt",21), 1024, IPC_CREAT | 0644);
 		
-		char * story = shmat(shmid, 0, 0);
+		char story[1024];
 		int fd = open("story.txt",O_RDONLY, 0644);
-		read(fd,story,1024);
-		printf("%s\n",story);
-		
-		shmdt(story);
+		read(fd,story, sizeof(story));
+		printf("Viewing Story: %s\n",story);
+
+		//view and remove print random characters at end
 	} else if (strcmp(argv[1],"-r") == 0) {
-		int shmid = shmget(ftok("story.txt",21), 1024, IPC_CREAT | 0644);
+		int shmid = shmget(ftok("story.txt",21), 1024, 0);
+		int semid = semget(ftok("story.txt",42), 1, 0);
 		
-		char * story = shmat(shmid, 0, 0);
+		char story[1024];
 		int fd = open("story.txt",O_RDONLY, 0644);
-		read(fd,story,1024);
-		printf("%s\n",story);
+		read(fd,story, sizeof(story));
+		printf("Removing Story: %s\n",story); 
 		
-		shmdt(story);
 		shmctl(shmid,IPC_RMID,0);
-		
-		int semid = semget(ftok("story.txt",42), 1, IPC_CREAT | 0644);
 		semctl(semid,0,IPC_RMID,0);
 	}
 	
+
 	return 0;
 }

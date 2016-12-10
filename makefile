@@ -7,4 +7,6 @@ compile2: control.c
 	gcc control.c -o control
 
 clean:
-	rm *~
+	rm control
+	rm sem
+	rm story.txt

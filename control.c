@@ -25,16 +25,16 @@ int main() {
 	int shmid = shmget(ftok("story.txt",21), 1024, IPC_CREAT | 0644);
 	int fd = open("story.txt",O_RDWR | O_APPEND, 0644);
 
-	
+	/*
 	//read last line
 	//seg faults from this part
-	int *mem_seg = shmat(shmid, 0, 0);
+	int *mem_seg = (int *) shmat(shmid, 0, 0);
 	char last_line[1000];
 	lseek(fd,-(*mem_seg),SEEK_END);
 	read(fd,last_line,*mem_seg);
 
   	if(strlen(last_line) != 0) printf("Last line: %s\n",last_line);
-
+	*/
 
 	printf("Add a line to the story:\n");
 	
