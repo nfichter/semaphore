@@ -10,12 +10,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-/*union semun {
+union semun {
 	int 			val;
 	struct semid_ds *buf;
 	unsigned short	*array;
 	struct seminfo	*__buf;
-};*/
+};
 
 int main(int argc, char *argv[]) {
 	if (strcmp(argv[1],"-c") == 0) {
@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
 		char * story = shmat(shmid, 0, 0);
 	
 		int semid = semget(ftok("story.txt",42), 1, IPC_CREAT | 0644);
+		printf("semaphore createdL %d\n", semid);
 		union semun su;
 		su.val = 1;
 		semctl(semid,0,SETVAL,su);
