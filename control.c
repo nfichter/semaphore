@@ -14,39 +14,43 @@
 
 int main() {
 	
-	int semid = semget(ftok("story.txt",42),1,0644);
+  int semid = semget(ftok("story.txt",42),1,0644);
 	
-	struct sembuf sb;
-	sb.sem_num = 0;
-	sb.sem_flg = SEM_UNDO;
-	sb.sem_op = -1;
-	semop(semid,&sb,1);
+  struct sembuf sb;
+  sb.sem_num = 0;
+  sb.sem_flg = SEM_UNDO;
+  sb.sem_op = -1;
+  semop(semid,&sb,1);
+
+  int shmid = shmget(ftok("makefile",21), 1024, 0644);
+  int fd = open("story.txt",O_RDWR | O_APPEND, 0644);
+
+  if (shmid == -1) {
+    printf("Please create using ./sem -c before running the control file.\n");
+  } else {
+    int *mem_seg = (int *)shmat(shmid, 0, 0);
+    char * last_line = (char *)calloc(sizeof(char),1024);
+    lseek(fd,-(*mem_seg),SEEK_END);
+    read(fd,last_line,*mem_seg);
 	
-	int shmid = shmget(ftok("story.txt",21), 1024, IPC_CREAT | 0644);
-	int fd = open("story.txt",O_RDWR | O_APPEND, 0644);
-
-	/*
-	//read last line
-	//seg faults from this part
-	int *mem_seg = (int *) shmat(shmid, 0, 0);
-	char last_line[1000];
-	lseek(fd,-(*mem_seg),SEEK_END);
-	read(fd,last_line,*mem_seg);
-
-  	if(strlen(last_line) != 0) printf("Last line: %s\n",last_line);
-	*/
-
-	printf("Add a line to the story:\n");
+    if (*mem_seg != 0) {
+      printf("Last line: %s",last_line);
+    }
 	
-	char buffer[64];
-  	fgets(buffer, sizeof(buffer), stdin);
-  	int messageLen = strlen(buffer);
-  	printf("messageLen: %d\n message: %s",messageLen,buffer);
-  	write(fd,buffer,messageLen);
+    printf("Add a line to the story:\n");
+	  
+    char buffer[64];
+    fgets(buffer, sizeof(buffer), stdin);
+    char * zeroPoint = strstr(buffer,"\n");
+    zeroPoint = 0;
+    int messageLen = strlen(buffer);
+    write(fd,buffer,messageLen);
+    
+    *mem_seg = messageLen;
 	
-	sb.sem_op = 1;
-	semop(semid,&sb,1);
-	//shmdt(story);
-
-	return 0;
+    sb.sem_op = 1;
+    semop(semid,&sb,1);
+	  
+    return 0;
+  }
 }

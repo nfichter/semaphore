@@ -11,47 +11,50 @@
 #include <fcntl.h>
 
 union semun {
-	int 			val;
-	struct semid_ds *buf;
-	unsigned short	*array;
-	struct seminfo	*__buf;
+  int 			val;
+  struct semid_ds *buf;
+  unsigned short	*array;
+  struct seminfo	*__buf;
 };
 
 int main(int argc, char *argv[]) {
-	if (strcmp(argv[1],"-c") == 0) {
-		int fd = open("story.txt",O_CREAT | O_TRUNC, 0644);
-		
-		int shmid = shmget(ftok("story.txt",21), 1024, IPC_CREAT | 0644);
-		char * story = shmat(shmid, 0, 0);
-	
-		int semid = semget(ftok("story.txt",42), 1, IPC_CREAT | 0644);
-		printf("semaphore createdL %d\n", semid);
-		union semun su;
-		su.val = 1;
-		semctl(semid,0,SETVAL,su);
-
-	} else if (strcmp(argv[1],"-v") == 0) {
-		int shmid = shmget(ftok("story.txt",21), 1024, IPC_CREAT | 0644);
-		
-		char story[1024];
-		int fd = open("story.txt",O_RDONLY, 0644);
-		read(fd,story, sizeof(story));
-		printf("Viewing Story: %s\n",story);
-
-		//view and remove print random characters at end
-	} else if (strcmp(argv[1],"-r") == 0) {
-		int shmid = shmget(ftok("story.txt",21), 1024, 0);
-		int semid = semget(ftok("story.txt",42), 1, 0);
-		
-		char story[1024];
-		int fd = open("story.txt",O_RDONLY, 0644);
-		read(fd,story, sizeof(story));
-		printf("Removing Story: %s\n",story); 
-		
-		shmctl(shmid,IPC_RMID,0);
-		semctl(semid,0,IPC_RMID,0);
-	}
-	
-
-	return 0;
+  if (strcmp(argv[1],"-c") == 0) {
+    int shmid = shmget(ftok("makefile",21), 1024, IPC_CREAT | IPC_EXCL | 0644);
+    if (shmid == -1) {
+      printf("Semaphore already exists, please remove using ./sem -r before re-creating.\n");
+    } else {
+      int fd = open("story.txt",O_CREAT | O_TRUNC, 0644);
+      int semid = semget(ftok("makefile",42), 1, IPC_CREAT | IPC_EXCL | 0644);
+      printf("Semaphore created: %d\n", semid);
+      union semun su;
+      su.val = 1;
+      semctl(semid,0,SETVAL,su);
+    }
+  }
+  else if (strcmp(argv[1],"-v") == 0) {
+    int shmid = shmget(ftok("makefile",21), 1024, 0644);
+    if (shmid == -1) {
+      printf("Please create using ./sem -c before attempting to view the file.\n");
+    } else {
+      char story[1024];
+      int fd = open("story.txt",O_RDONLY, 0644);
+      read(fd,story, sizeof(story));
+      printf("Viewing Story: %s\n",story);
+    }
+  } else if (strcmp(argv[1],"-r") == 0) {
+    int shmid = shmget(ftok("makefile",21), 1024, 0);
+    if (shmid == -1) {
+      printf("Please create using ./sem -c before attempting to remove the file.\n");
+    } else {
+      int semid = semget(ftok("makefile",42), 1, 0);
+      char * story = (char *)calloc(sizeof(char),1024);
+      int fd = open("story.txt",O_RDONLY, 0644);
+      read(fd,story,1024);
+      printf("Removing story: %s\n",story); 
+      shmctl(shmid,IPC_RMID,0);
+      semctl(semid,0,IPC_RMID,0);
+      remove("story.txt");
+    }
+  }
+  return 0;
 }
