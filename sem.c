@@ -10,12 +10,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-union semun {
+/*union semun {
   int 			val;
   struct semid_ds *buf;
   unsigned short	*array;
   struct seminfo	*__buf;
-};
+};*/
 
 int main(int argc, char *argv[]) {
   if (strcmp(argv[1],"-c") == 0) {
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     } else {
       char * story = (char *)calloc(sizeof(char),1024);
       int fd = open("story.txt",O_RDONLY, 0644);
-      read(fd,story, sizeof(story));
+      read(fd,story,1024);
       printf("Viewing Story: %s\n",story);
     }
   } else if (strcmp(argv[1],"-r") == 0) {
