@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     if (shmid == -1) {
       printf("Please create using ./sem -c before attempting to view the file.\n");
     } else {
-      char story[1024];
+      char * story = (char *)calloc(sizeof(char),1024);
       int fd = open("story.txt",O_RDONLY, 0644);
       read(fd,story, sizeof(story));
       printf("Viewing Story: %s\n",story);
